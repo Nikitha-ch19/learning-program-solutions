@@ -1,0 +1,123 @@
+
+
+CREATE TABLE Customers (
+    CustomerID NUMBER PRIMARY KEY,
+    Name VARCHAR2(100),
+    DOB DATE,
+    Balance NUMBER,
+    LastModified DATE
+);
+
+CREATE OR REPLACE PACKAGE CustomerManagement AS
+    PROCEDURE AddCustomer (
+        p_id NUMBER,
+        p_name VARCHAR2,
+        p_dob DATE,
+        p_balance NUMBER
+    );
+
+    PROCEDURE UpdateCustomer (
+        p_id NUMBER,
+        p_name VARCHAR2,
+        p_dob DATE,
+        p_balance NUMBER
+    );
+
+    FUNCTION GetCustomerBalance (
+        p_id NUMBER
+    ) RETURN NUMBER;
+END CustomerManagement;
+/
+
+CREATE OR REPLACE PACKAGE BODY CustomerManagement AS
+    PROCEDURE AddCustomer (
+        p_id NUMBER,
+        p_name VARCHAR2,
+        p_dob DATE,
+        p_balance NUMBER
+    ) IS
+    BEGIN
+        INSERT INTO Customers (CustomerID, Name, DOB, Balance, LastModified)
+        VALUES (p_id, p_name, p_dob, p_balance, SYSDATE);
+        COMMIT;
+    EXCEPTION
+        WHEN DUP_VAL_ON_INDEX THEN
+            DBMS_OUTPUT.PUT_LINE('Error: Customer ID already exists.');
+    END AddCustomer;
+
+    PROCEDURE UpdateCustomer (
+        p_id NUMBER,
+        p_name VARCHAR2,
+        p_dob DATE,
+        p_balance NUMBER
+    ) IS
+    BEGIN
+        UPDATE Customers
+        SET Name = p_name,
+            DOB = p_dob,
+            Balance = p_balance,
+            LastModified = SYSDATE
+        WHERE CustomerID = p_id;
+
+        IF SQL%ROWCOUNT = 0 THEN
+            DBMS_OUTPUT.PUT_LINE('Error: Customer not found.');
+        ELSE
+            COMMIT;
+        END IF;
+    END UpdateCustomer;
+
+    FUNCTION GetCustomerBalance (
+        p_id NUMBER
+    ) RETURN NUMBER IS
+        v_balance NUMBER;
+    BEGIN
+        SELECT Balance INTO v_balance
+        FROM Customers
+        WHERE CustomerID = p_id;
+        RETURN v_balance;
+    EXCEPTION
+        WHEN NO_DATA_FOUND THEN
+            RETURN NULL;
+    END GetCustomerBalance;
+END CustomerManagement;
+/
+
+BEGIN
+    CustomerManagement.AddCustomer(1, 'John Senior', TO_DATE('1950-01-01', 'YYYY-MM-DD'), 12000);
+    CustomerManagement.AddCustomer(2, 'Emily Young', TO_DATE('1995-06-15', 'YYYY-MM-DD'), 8000);
+    CustomerManagement.AddCustomer(3, 'Vikram Rao', TO_DATE('1980-12-10', 'YYYY-MM-DD'), 9500);
+    CustomerManagement.AddCustomer(4, 'Aisha Khan', TO_DATE('1988-12-20', 'YYYY-MM-DD'), 7500);
+    CustomerManagement.AddCustomer(5, 'Vikram Patel', TO_DATE('1975-07-08', 'YYYY-MM-DD'), 9500);
+    CustomerManagement.AddCustomer(6, 'Divya Rao', TO_DATE('2000-05-15', 'YYYY-MM-DD'), 4500);
+    CustomerManagement.AddCustomer(7, 'Ankit Mehra', TO_DATE('1992-11-30', 'YYYY-MM-DD'), 10200);
+    CustomerManagement.AddCustomer(8, 'Sneha Iyer', TO_DATE('1983-09-27', 'YYYY-MM-DD'), 11900);
+    CustomerManagement.AddCustomer(9, 'Rohit Sen', TO_DATE('1970-03-05', 'YYYY-MM-DD'), 15500);
+    CustomerManagement.AddCustomer(10, 'Naina Joshi', TO_DATE('1997-04-18', 'YYYY-MM-DD'), 6800);
+    COMMIT;
+END;
+/
+
+BEGIN
+    CustomerManagement.UpdateCustomer(2, 'Emily Thomas', TO_DATE('1995-06-15', 'YYYY-MM-DD'), 8500);
+    DBMS_OUTPUT.PUT_LINE('Balance of Customer 1: ₹' || CustomerManagement.GetCustomerBalance(1));
+END;
+/
+
+SELECT * FROM Customers ORDER BY CustomerID;
+
+Output:
+
+
+CUSTOMERID NAME           DOB                       BALANCE LASTMODIFIED              
+---------- -------------- ------------------------- ------- ------------------------- 
+1          John Senior    01/01/1950, 05:30:00 AM   12000   06/28/2025, 05:15:36 PM   
+2          Emily Thomas   06/15/1995, 05:30:00 AM   8500    06/28/2025, 05:15:36 PM   
+3          Vikram Rao     12/10/1980, 05:30:00 AM   9500    06/28/2025, 05:15:36 PM   
+4          Aisha Khan     12/20/1988, 05:30:00 AM   7500    06/28/2025, 05:15:36 PM   
+5          Vikram Patel   07/08/1975, 05:30:00 AM   9500    06/28/2025, 05:15:36 PM   
+6          Divya Rao      05/15/2000, 05:30:00 AM   4500    06/28/2025, 05:15:36 PM   
+7          Ankit Mehra    11/30/1992, 05:30:00 AM   10200   06/28/2025, 05:15:36 PM   
+8          Sneha Iyer     09/27/1983, 05:30:00 AM   11900   06/28/2025, 05:15:36 PM   
+9          Rohit Sen      03/05/1970, 05:30:00 AM   15500   06/28/2025, 05:15:36 PM   
+10         Naina Joshi    04/18/1997, 05:30:00 AM   6800    06/28/2025, 05:15:36 PM   
+

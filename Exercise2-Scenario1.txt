@@ -1,0 +1,71 @@
+
+
+CREATE TABLE Accounts (
+    AccountID NUMBER PRIMARY KEY,
+    CustomerID NUMBER,
+    AccountType VARCHAR2(20),
+    Balance NUMBER,
+    LastModified DATE
+);
+
+INSERT INTO Accounts VALUES (1, 1, 'Savings', 5000, SYSDATE);
+INSERT INTO Accounts VALUES (2, 2, 'Current', 3000, SYSDATE);
+COMMIT;
+
+CREATE OR REPLACE PROCEDURE SafeTransferFunds (
+    p_from_account IN NUMBER,
+    p_to_account   IN NUMBER,
+    p_amount       IN NUMBER
+) IS
+    v_from_balance NUMBER;
+BEGIN
+    SELECT Balance INTO v_from_balance
+    FROM Accounts
+    WHERE AccountID = p_from_account;
+
+    IF v_from_balance < p_amount THEN
+        RAISE_APPLICATION_ERROR(-20001, 'Insufficient funds in source account.');
+    END IF;
+
+    UPDATE Accounts
+    SET Balance = Balance - p_amount,
+        LastModified = SYSDATE
+    WHERE AccountID = p_from_account;
+
+    UPDATE Accounts
+    SET Balance = Balance + p_amount,
+        LastModified = SYSDATE
+    WHERE AccountID = p_to_account;
+
+    COMMIT;
+
+    DBMS_OUTPUT.PUT_LINE('Transfer successful: ₹' || p_amount || ' from Account ' || p_from_account || ' to Account ' || p_to_account);
+EXCEPTION
+    WHEN OTHERS THEN
+        ROLLBACK;
+        DBMS_OUTPUT.PUT_LINE('Transfer failed: ' || SQLERRM);
+END;
+/
+
+BEGIN
+   SafeTransferFunds(1, 2, 1000);
+END;
+/
+
+BEGIN
+   SafeTransferFunds(2, 1, 10000);
+END;
+/
+
+
+
+
+
+Output:
+
+Transfer successful: ₹1000 from Account 1 to Account 2
+
+
+
+
+Transfer failed: ORA-20001: Insufficient funds in source account.

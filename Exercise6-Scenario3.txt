@@ -1,0 +1,60 @@
+
+
+CREATE TABLE Loans (
+    LoanID NUMBER PRIMARY KEY,
+    CustomerID NUMBER,
+    LoanAmount NUMBER,
+    InterestRate NUMBER,
+    StartDate DATE,
+    EndDate DATE
+);
+
+INSERT INTO Loans VALUES (301, 1, 50000, 8.5, SYSDATE, ADD_MONTHS(SYSDATE, 60));
+INSERT INTO Loans VALUES (302, 2, 60000, 9.0, SYSDATE, ADD_MONTHS(SYSDATE, 36));
+INSERT INTO Loans VALUES (303, 3, 75000, 6.0, SYSDATE, ADD_MONTHS(SYSDATE, 48));
+INSERT INTO Loans VALUES (304, 4, 85000, 7.5, SYSDATE, ADD_MONTHS(SYSDATE, 24));
+INSERT INTO Loans VALUES (305, 5, 40000, 5.0, SYSDATE, ADD_MONTHS(SYSDATE, 12));
+COMMIT;
+
+SET SERVEROUTPUT ON;
+
+DECLARE
+    CURSOR cur_loans IS
+        SELECT LoanID, InterestRate
+        FROM Loans;
+
+    v_new_rate NUMBER;
+BEGIN
+    FOR rec IN cur_loans LOOP
+        IF rec.InterestRate >= 8 THEN
+            v_new_rate := rec.InterestRate - 1;
+        ELSIF rec.InterestRate < 6 THEN
+            v_new_rate := rec.InterestRate + 1;
+        ELSE
+            v_new_rate := rec.InterestRate;
+        END IF;
+
+        UPDATE Loans
+        SET InterestRate = v_new_rate
+        WHERE LoanID = rec.LoanID;
+
+        DBMS_OUTPUT.PUT_LINE('Loan ID ' || rec.LoanID || ': Interest updated from ' || rec.InterestRate || ' to ' || v_new_rate);
+    END LOOP;
+
+    COMMIT;
+END;
+/
+
+
+
+Output:
+
+Loan ID 301: Interest updated from 8.5 to 7.5
+Loan ID 302: Interest updated from 9 to 8
+Loan ID 303: Interest updated from 6 to 6
+Loan ID 304: Interest updated from 7.5 to 7.5
+Loan ID 305: Interest updated from 5 to 6
+
+
+
+

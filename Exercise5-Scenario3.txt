@@ -1,0 +1,79 @@
+
+
+CREATE TABLE Accounts (
+    AccountID NUMBER PRIMARY KEY,
+    CustomerID NUMBER,
+    AccountType VARCHAR2(20),
+    Balance NUMBER,
+    LastModified DATE
+);
+
+CREATE TABLE Transactions (
+    TransactionID NUMBER PRIMARY KEY,
+    AccountID NUMBER,
+    TransactionDate DATE,
+    Amount NUMBER,
+    TransactionType VARCHAR2(10)
+);
+
+INSERT INTO Accounts VALUES (1, 1, 'Savings', 8000, SYSDATE);
+INSERT INTO Accounts VALUES (2, 1, 'Current', 3000, SYSDATE);
+INSERT INTO Accounts VALUES (3, 2, 'Savings', 10000, SYSDATE);
+COMMIT;
+
+CREATE OR REPLACE TRIGGER CheckTransactionRules
+BEFORE INSERT ON Transactions
+FOR EACH ROW
+DECLARE
+    v_balance NUMBER;
+BEGIN
+    IF :NEW.TransactionType = 'DEPOSIT' THEN
+        IF :NEW.Amount <= 0 THEN
+            RAISE_APPLICATION_ERROR(-20001, 'Deposit amount must be positive.');
+        END IF;
+    ELSIF :NEW.TransactionType = 'WITHDRAW' THEN
+        SELECT Balance INTO v_balance
+        FROM Accounts
+        WHERE AccountID = :NEW.AccountID;
+
+        IF :NEW.Amount > v_balance THEN
+            RAISE_APPLICATION_ERROR(-20002, 'Withdrawal amount exceeds current balance.');
+        ELSIF :NEW.Amount <= 0 THEN
+            RAISE_APPLICATION_ERROR(-20003, 'Withdrawal amount must be positive.');
+        END IF;
+    ELSE
+        RAISE_APPLICATION_ERROR(-20004, 'Invalid transaction type.');
+    END IF;
+END;
+/
+
+INSERT INTO Transactions VALUES (2001, 1, SYSDATE, 1500, 'DEPOSIT');
+INSERT INTO Transactions VALUES (2002, 2, SYSDATE, 1000, 'WITHDRAW');
+INSERT INTO Transactions VALUES (2003, 3, SYSDATE, 2000, 'WITHDRAW');
+INSERT INTO Transactions VALUES (2004, 1, SYSDATE, 3000, 'WITHDRAW');
+INSERT INTO Transactions VALUES (2005, 2, SYSDATE, 500, 'DEPOSIT');
+INSERT INTO Transactions VALUES (2006, 3, SYSDATE, 1000, 'DEPOSIT');
+INSERT INTO Transactions VALUES (2007, 1, SYSDATE, 700, 'WITHDRAW');
+INSERT INTO Transactions VALUES (2008, 2, SYSDATE, 400, 'DEPOSIT');
+INSERT INTO Transactions VALUES (2009, 3, SYSDATE, 5000, 'WITHDRAW');
+INSERT INTO Transactions VALUES (2010, 1, SYSDATE, 1200, 'DEPOSIT');
+
+COMMIT;
+
+SELECT * FROM Transactions;
+
+
+Output:
+
+TRANSACTIONID ACCOUNTID TRANSACTIONDATE           AMOUNT TRANSACTIONTYPE 
+------------- --------- ------------------------- ------ --------------- 
+2001          1         06/28/2025, 05:02:42 PM   1500   DEPOSIT         
+2002          2         06/28/2025, 05:02:42 PM   1000   WITHDRAW        
+2003          3         06/28/2025, 05:02:42 PM   2000   WITHDRAW        
+2004          1         06/28/2025, 05:02:42 PM   3000   WITHDRAW        
+2005          2         06/28/2025, 05:02:42 PM   500    DEPOSIT         
+2006          3         06/28/2025, 05:02:42 PM   1000   DEPOSIT         
+2007          1         06/28/2025, 05:02:42 PM   700    WITHDRAW        
+2008          2         06/28/2025, 05:02:42 PM   400    DEPOSIT         
+2009          3         06/28/2025, 05:02:42 PM   5000   WITHDRAW        
+2010          1         06/28/2025, 05:02:42 PM   1200   DEPOSIT         

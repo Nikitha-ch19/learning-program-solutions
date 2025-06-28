@@ -1,0 +1,62 @@
+
+
+CREATE TABLE Customers (
+    CustomerID NUMBER PRIMARY KEY,
+    Name VARCHAR2(100),
+    DOB DATE,
+    Balance NUMBER,
+    LastModified DATE
+);
+
+INSERT INTO Customers VALUES (1, 'John Senior', TO_DATE('1950-01-01', 'YYYY-MM-DD'), 12000, SYSDATE);
+INSERT INTO Customers VALUES (2, 'Emily Young', TO_DATE('1995-06-15', 'YYYY-MM-DD'), 8000, SYSDATE);
+INSERT INTO Customers VALUES (3, 'Priya Mid', TO_DATE('1980-08-25', 'YYYY-MM-DD'), 9500, SYSDATE);
+INSERT INTO Customers VALUES (4, 'Raj Aged', TO_DATE('1960-03-10', 'YYYY-MM-DD'), 11000, SYSDATE);
+INSERT INTO Customers VALUES (5, 'Anjali Gupta', TO_DATE('1985-09-20', 'YYYY-MM-DD'), 7300, SYSDATE);
+INSERT INTO Customers VALUES (6, 'Vikram Desai', TO_DATE('1972-12-05', 'YYYY-MM-DD'), 9400, SYSDATE);
+INSERT INTO Customers VALUES (7, 'Sara Khan', TO_DATE('1998-04-18', 'YYYY-MM-DD'), 6700, SYSDATE);
+INSERT INTO Customers VALUES (8, 'Karan Mehta', TO_DATE('2000-11-30', 'YYYY-MM-DD'), 8800, SYSDATE);
+INSERT INTO Customers VALUES (9, 'Meera Nair', TO_DATE('1958-07-12', 'YYYY-MM-DD'), 13500, SYSDATE);
+INSERT INTO Customers VALUES (10, 'Nikhil Rao', TO_DATE('1975-02-14', 'YYYY-MM-DD'), 9900, SYSDATE);
+COMMIT;
+
+CREATE OR REPLACE PROCEDURE AddNewCustomer (
+    p_id IN NUMBER,
+    p_name IN VARCHAR2,
+    p_dob IN DATE,
+    p_balance IN NUMBER
+) IS
+BEGIN
+    INSERT INTO Customers (CustomerID, Name, DOB, Balance, LastModified)
+    VALUES (p_id, p_name, p_dob, p_balance, SYSDATE);
+
+    COMMIT;
+
+    DBMS_OUTPUT.PUT_LINE('New customer added. ID: ' || p_id);
+EXCEPTION
+    WHEN DUP_VAL_ON_INDEX THEN
+        ROLLBACK;
+        DBMS_OUTPUT.PUT_LINE('Error: Customer ID ' || p_id || ' already exists.');
+    WHEN OTHERS THEN
+        ROLLBACK;
+        DBMS_OUTPUT.PUT_LINE('Error: ' || SQLERRM);
+END;
+/
+
+BEGIN
+   AddNewCustomer(11, 'Rohit Bansal', TO_DATE('1982-10-11', 'YYYY-MM-DD'), 8700);
+END;
+/
+
+BEGIN
+   AddNewCustomer(2, 'Duplicate Emily', TO_DATE('1990-01-01', 'YYYY-MM-DD'), 10000);
+END;
+/
+
+
+Output:
+
+New customer added. ID: 11
+
+
+Error: Customer ID 2 already exists.

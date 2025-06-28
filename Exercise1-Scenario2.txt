@@ -1,0 +1,46 @@
+
+BEGIN
+   EXECUTE IMMEDIATE 'ALTER TABLE Customers ADD IsVIP VARCHAR2(5)';
+EXCEPTION
+   WHEN OTHERS THEN
+      IF SQLCODE != -01430 THEN -- ORA-01430: column already exists
+         RAISE;
+      END IF;
+END;
+/
+
+
+
+SET SERVEROUTPUT ON;
+
+BEGIN
+   FOR rec IN (SELECT CustomerID, Balance FROM Customers) LOOP
+      IF rec.Balance > 10000 THEN
+         UPDATE Customers
+         SET IsVIP = 'TRUE'
+         WHERE CustomerID = rec.CustomerID;
+
+         DBMS_OUTPUT.PUT_LINE('✅ Customer ID ' || rec.CustomerID || ' marked as VIP (Balance: $' || rec.Balance || ')');
+      ELSE
+         UPDATE Customers
+         SET IsVIP = 'FALSE'
+         WHERE CustomerID = rec.CustomerID;
+
+         DBMS_OUTPUT.PUT_LINE('ℹ️ Customer ID ' || rec.CustomerID || ' is not VIP (Balance: $' || rec.Balance || ')');
+      END IF;
+   END LOOP;
+
+   COMMIT;
+END;
+/
+
+
+
+Output:
+
+✅ Customer ID 1 marked as VIP (Balance: $12000)
+ℹ️ Customer ID 2 is not VIP (Balance: $8000)
+✅ Customer ID 3 marked as VIP (Balance: $11000)
+ℹ️ Customer ID 4 is not VIP (Balance: $9500)
+ 
+

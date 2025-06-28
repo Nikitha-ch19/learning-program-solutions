@@ -1,0 +1,103 @@
+
+
+CREATE TABLE Accounts (
+    AccountID NUMBER PRIMARY KEY,
+    CustomerID NUMBER,
+    AccountType VARCHAR2(20),
+    Balance NUMBER,
+    LastModified DATE
+);
+
+CREATE OR REPLACE PACKAGE AccountOperations AS
+    PROCEDURE OpenAccount (
+        p_account_id NUMBER,
+        p_customer_id NUMBER,
+        p_account_type VARCHAR2,
+        p_balance NUMBER
+    );
+
+    PROCEDURE CloseAccount (
+        p_account_id NUMBER
+    );
+
+    FUNCTION GetTotalBalance (
+        p_customer_id NUMBER
+    ) RETURN NUMBER;
+END AccountOperations;
+/
+
+CREATE OR REPLACE PACKAGE BODY AccountOperations AS
+    PROCEDURE OpenAccount (
+        p_account_id NUMBER,
+        p_customer_id NUMBER,
+        p_account_type VARCHAR2,
+        p_balance NUMBER
+    ) IS
+    BEGIN
+        INSERT INTO Accounts (AccountID, CustomerID, AccountType, Balance, LastModified)
+        VALUES (p_account_id, p_customer_id, p_account_type, p_balance, SYSDATE);
+        COMMIT;
+    EXCEPTION
+        WHEN DUP_VAL_ON_INDEX THEN
+            DBMS_OUTPUT.PUT_LINE('Error: Account ID already exists.');
+    END OpenAccount;
+
+    PROCEDURE CloseAccount (
+        p_account_id NUMBER
+    ) IS
+    BEGIN
+        DELETE FROM Accounts
+        WHERE AccountID = p_account_id;
+
+        IF SQL%ROWCOUNT = 0 THEN
+            DBMS_OUTPUT.PUT_LINE('Error: Account not found.');
+        ELSE
+            COMMIT;
+        END IF;
+    END CloseAccount;
+
+    FUNCTION GetTotalBalance (
+        p_customer_id NUMBER
+    ) RETURN NUMBER IS
+        v_total NUMBER;
+    BEGIN
+        SELECT SUM(Balance) INTO v_total
+        FROM Accounts
+        WHERE CustomerID = p_customer_id;
+
+        RETURN NVL(v_total, 0);
+    EXCEPTION
+        WHEN NO_DATA_FOUND THEN
+            RETURN 0;
+    END GetTotalBalance;
+END AccountOperations;
+/
+
+BEGIN
+    AccountOperations.OpenAccount(101, 1, 'Savings', 8000);
+    AccountOperations.OpenAccount(102, 1, 'Current', 4000);
+    AccountOperations.OpenAccount(103, 2, 'Savings', 10000);
+    AccountOperations.OpenAccount(104, 3, 'Current', 3500);
+    AccountOperations.OpenAccount(105, 3, 'Savings', 6500);
+    COMMIT;
+END;
+/
+
+BEGIN
+    AccountOperations.CloseAccount(104);
+    DBMS_OUTPUT.PUT_LINE('Total balance for Customer 1: ₹' || AccountOperations.GetTotalBalance(1));
+    DBMS_OUTPUT.PUT_LINE('Total balance for Customer 3: ₹' || AccountOperations.GetTotalBalance(3));
+END;
+/
+
+SELECT * FROM Accounts ORDER BY AccountID;
+
+
+Output:
+
+ACCOUNTID CUSTOMERID ACCOUNTTYPE BALANCE LASTMODIFIED              
+--------- ---------- ----------- ------- ------------------------- 
+101       1          Savings     8000    06/28/2025, 05:20:56 PM   
+102       1          Current     4000    06/28/2025, 05:20:56 PM   
+103       2          Savings     10000   06/28/2025, 05:20:56 PM   
+105       3          Savings     6500    06/28/2025, 05:20:56 PM  

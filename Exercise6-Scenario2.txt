@@ -1,0 +1,51 @@
+
+
+CREATE TABLE Accounts (
+    AccountID NUMBER PRIMARY KEY,
+    CustomerID NUMBER,
+    AccountType VARCHAR2(20),
+    Balance NUMBER,
+    LastModified DATE
+);
+
+INSERT INTO Accounts VALUES (201, 1, 'Savings', 8000, SYSDATE);
+INSERT INTO Accounts VALUES (202, 2, 'Current', 5000, SYSDATE);
+INSERT INTO Accounts VALUES (203, 3, 'Savings', 3000, SYSDATE);
+INSERT INTO Accounts VALUES (204, 4, 'Current', 12000, SYSDATE);
+INSERT INTO Accounts VALUES (205, 5, 'Savings', 15000, SYSDATE);
+COMMIT;
+
+SET SERVEROUTPUT ON;
+
+DECLARE
+    CURSOR cur_accounts IS
+        SELECT AccountID, Balance
+        FROM Accounts;
+
+    v_fee NUMBER := 250;
+BEGIN
+    FOR acc IN cur_accounts LOOP
+        IF acc.Balance >= v_fee THEN
+            UPDATE Accounts
+            SET Balance = Balance - v_fee,
+                LastModified = SYSDATE
+            WHERE AccountID = acc.AccountID;
+
+            DBMS_OUTPUT.PUT_LINE('₹' || v_fee || ' annual fee deducted from Account ' || acc.AccountID);
+        ELSE
+            DBMS_OUTPUT.PUT_LINE('Account ' || acc.AccountID || ' has insufficient balance. Fee not deducted.');
+        END IF;
+    END LOOP;
+
+    COMMIT;
+END;
+/
+
+Output:
+
+₹250 annual fee deducted from Account 201
+₹250 annual fee deducted from Account 202
+₹250 annual fee deducted from Account 203
+₹250 annual fee deducted from Account 204
+₹250 annual fee deducted from Account 205
+

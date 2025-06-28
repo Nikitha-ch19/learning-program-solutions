@@ -1,0 +1,35 @@
+
+CREATE TABLE Customers (
+    CustomerID NUMBER PRIMARY KEY,
+    Name VARCHAR2(100),
+    DOB DATE,
+    Balance NUMBER,
+    LastModified DATE
+);
+
+INSERT INTO Customers VALUES (1, 'John Senior', TO_DATE('1950-01-01', 'YYYY-MM-DD'), 12000, SYSDATE);
+INSERT INTO Customers VALUES (2, 'Emily Young', TO_DATE('1995-06-15', 'YYYY-MM-DD'), 8000, SYSDATE);
+INSERT INTO Customers VALUES (3, 'Raj Aged', TO_DATE('1960-03-10', 'YYYY-MM-DD'), 11000, SYSDATE);
+COMMIT;
+
+CREATE OR REPLACE FUNCTION CalculateAge(p_dob DATE)
+RETURN NUMBER IS
+    v_age NUMBER;
+BEGIN
+    v_age := FLOOR(MONTHS_BETWEEN(SYSDATE, p_dob) / 12);
+    RETURN v_age;
+END;
+/
+
+SELECT Name, DOB, CalculateAge(DOB) AS Age FROM Customers;
+
+
+Output:
+
+NAME           DOB                       AGE 
+-------------- ------------------------- --- 
+Rohit Bansal   10/11/1982, 05:30:00 AM   42  
+John Senior    01/01/1950, 05:30:00 AM   75  
+Emily Young    06/15/1995, 05:30:00 AM   30  
+Raj Aged       03/10/1960, 05:30:00 AM   65  
+Priya Mid      08/25/1980, 05:30:00 AM   44 

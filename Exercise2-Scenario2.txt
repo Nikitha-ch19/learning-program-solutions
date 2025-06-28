@@ -1,0 +1,59 @@
+
+
+CREATE TABLE Employees (
+    EmployeeID NUMBER PRIMARY KEY,
+    Name VARCHAR2(100),
+    Position VARCHAR2(50),
+    Salary NUMBER,
+    Department VARCHAR2(50),
+    HireDate DATE
+);
+
+INSERT INTO Employees VALUES (101, 'Amit Sharma', 'Manager', 60000, 'HR', TO_DATE('2015-06-01', 'YYYY-MM-DD'));
+INSERT INTO Employees VALUES (102, 'Neha Reddy', 'Developer', 50000, 'IT', TO_DATE('2018-01-15', 'YYYY-MM-DD'));
+COMMIT;
+
+CREATE OR REPLACE PROCEDURE UpdateSalary (
+    p_emp_id IN NUMBER,
+    p_percent IN NUMBER
+) IS
+BEGIN
+    UPDATE Employees
+    SET Salary = Salary + (Salary * p_percent / 100)
+    WHERE EmployeeID = p_emp_id;
+
+    IF SQL%ROWCOUNT = 0 THEN
+        RAISE_APPLICATION_ERROR(-20002, 'Employee ID not found.');
+    END IF;
+
+    COMMIT;
+
+    DBMS_OUTPUT.PUT_LINE('Salary updated for Employee ID: ' || p_emp_id);
+EXCEPTION
+    WHEN OTHERS THEN
+        ROLLBACK;
+        DBMS_OUTPUT.PUT_LINE('Error: ' || SQLERRM);
+END;
+/
+
+BEGIN
+   UpdateSalary(102, 10);
+END;
+/
+
+BEGIN
+   UpdateSalary(999, 5);
+END;
+/
+
+
+
+Output:
+
+
+Salary updated for Employee ID: 102
+
+
+
+
+Error: ORA-20002: Employee ID not found.

@@ -1,0 +1,95 @@
+
+
+CREATE TABLE ACCOUNTS (
+    ACCOUNTID    NUMBER PRIMARY KEY,
+    CUSTOMERID   NUMBER,
+    ACCOUNTTYPE  VARCHAR2(20),
+    BALANCE      NUMBER,
+    LASTMODIFIED DATE
+);
+
+INSERT INTO ACCOUNTS VALUES ( 1,
+                              1,
+                              'Savings',
+                              8000,
+                              SYSDATE );
+
+INSERT INTO ACCOUNTS VALUES ( 2,
+                              1,
+                              'Current',
+                              3000,
+                              SYSDATE );
+
+INSERT INTO ACCOUNTS VALUES ( 3,
+                              2,
+                              'Savings',
+                              10000,
+                              SYSDATE );
+
+INSERT INTO ACCOUNTS VALUES ( 4,
+                              2,
+                              'Current',
+                              1500,
+                              SYSDATE );
+
+COMMIT;
+
+CREATE OR REPLACE FUNCTION HASSUFFICIENTBALANCE (
+    P_ACCOUNT_ID IN NUMBER,
+    P_AMOUNT     IN NUMBER
+) RETURN BOOLEAN IS
+    V_BALANCE NUMBER;
+BEGIN
+    SELECT
+        BALANCE
+    INTO V_BALANCE
+    FROM
+        ACCOUNTS
+    WHERE
+        ACCOUNTID = P_ACCOUNT_ID;
+
+    IF V_BALANCE >= P_AMOUNT THEN
+        RETURN TRUE;
+    ELSE
+        RETURN FALSE;
+    END IF;
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        RETURN FALSE;
+END;
+/
+
+SET SERVEROUTPUT ON;
+
+DECLARE
+    V_RESULT BOOLEAN;
+BEGIN
+    V_RESULT := HASSUFFICIENTBALANCE(1, 5000);
+    IF V_RESULT THEN
+        DBMS_OUTPUT.PUT_LINE('Sufficient balance.');
+    ELSE
+        DBMS_OUTPUT.PUT_LINE('Insufficient balance.');
+    END IF;
+
+END;
+/
+
+DECLARE
+    V_RESULT BOOLEAN;
+BEGIN
+    V_RESULT := HASSUFFICIENTBALANCE(4, 2000);
+    IF V_RESULT THEN
+        DBMS_OUTPUT.PUT_LINE('Sufficient balance.');
+    ELSE
+        DBMS_OUTPUT.PUT_LINE('Insufficient balance.');
+    END IF;
+
+END;
+/
+
+
+
+Output:
+
+Sufficient balance.
+

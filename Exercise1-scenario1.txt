@@ -1,0 +1,207 @@
+
+BEGIN
+    EXECUTE IMMEDIATE 'DROP TABLE Loans';
+EXCEPTION
+    WHEN OTHERS THEN
+        IF SQLCODE != -942 THEN
+            RAISE;
+        END IF;
+END;
+/
+
+BEGIN
+    EXECUTE IMMEDIATE 'DROP TABLE Customers';
+EXCEPTION
+    WHEN OTHERS THEN
+        IF SQLCODE != -942 THEN
+            RAISE;
+        END IF;
+END;
+/
+
+
+CREATE TABLE CUSTOMERS (
+    CUSTOMERID   NUMBER PRIMARY KEY,
+    NAME         VARCHAR2(100),
+    DOB          DATE,
+    BALANCE      NUMBER,
+    LASTMODIFIED DATE
+);
+
+
+CREATE TABLE LOANS (
+    LOANID       NUMBER PRIMARY KEY,
+    CUSTOMERID   NUMBER,
+    LOANAMOUNT   NUMBER,
+    INTERESTRATE NUMBER,
+    STARTDATE    DATE,
+    ENDDATE      DATE,
+    FOREIGN KEY ( CUSTOMERID )
+        REFERENCES CUSTOMERS ( CUSTOMERID )
+);
+
+
+INSERT INTO CUSTOMERS (
+    CUSTOMERID,
+    NAME,
+    DOB,
+    BALANCE,
+    LASTMODIFIED
+) VALUES ( 1,
+           'John Senior',
+           TO_DATE('1950-01-01', 'YYYY-MM-DD'),
+           12000,
+           SYSDATE );  -- Age > 70
+
+INSERT INTO CUSTOMERS (
+    CUSTOMERID,
+    NAME,
+    DOB,
+    BALANCE,
+    LASTMODIFIED
+) VALUES ( 2,
+           'Emily Young',
+           TO_DATE('1995-06-15', 'YYYY-MM-DD'),
+           8000,
+           SYSDATE );   -- Age < 30
+
+INSERT INTO CUSTOMERS (
+    CUSTOMERID,
+    NAME,
+    DOB,
+    BALANCE,
+    LASTMODIFIED
+) VALUES ( 3,
+           'Raj Aged',
+           TO_DATE('1960-03-10', 'YYYY-MM-DD'),
+           11000,
+           SYSDATE );     -- Age ~64
+
+INSERT INTO CUSTOMERS (
+    CUSTOMERID,
+    NAME,
+    DOB,
+    BALANCE,
+    LASTMODIFIED
+) VALUES ( 4,
+           'Priya Mid',
+           TO_DATE('1980-08-25', 'YYYY-MM-DD'),
+           9500,
+           SYSDATE );     -- Age ~44
+
+-- Insert into Loans
+INSERT INTO LOANS (
+    LOANID,
+    CUSTOMERID,
+    LOANAMOUNT,
+    INTERESTRATE,
+    STARTDATE,
+    ENDDATE
+) VALUES ( 101,
+           1,
+           10000,
+           7.5,
+           SYSDATE,
+           ADD_MONTHS(SYSDATE, 60) );
+
+INSERT INTO LOANS (
+    LOANID,
+    CUSTOMERID,
+    LOANAMOUNT,
+    INTERESTRATE,
+    STARTDATE,
+    ENDDATE
+) VALUES ( 102,
+           2,
+           8000,
+           8.0,
+           SYSDATE,
+           ADD_MONTHS(SYSDATE, 48) );
+
+INSERT INTO LOANS (
+    LOANID,
+    CUSTOMERID,
+    LOANAMOUNT,
+    INTERESTRATE,
+    STARTDATE,
+    ENDDATE
+) VALUES ( 103,
+           3,
+           12000,
+           6.5,
+           SYSDATE,
+           ADD_MONTHS(SYSDATE, 36) );
+
+INSERT INTO LOANS (
+    LOANID,
+    CUSTOMERID,
+    LOANAMOUNT,
+    INTERESTRATE,
+    STARTDATE,
+    ENDDATE
+) VALUES ( 104,
+           4,
+           5000,
+           9.0,
+           SYSDATE,
+           ADD_MONTHS(SYSDATE, 24) );
+
+
+COMMIT;
+
+SET SERVEROUTPUT ON;
+
+DECLARE
+    CURSOR CUR_CUSTOMER_LOANS IS
+    SELECT
+        L.LOANID,
+        C.CUSTOMERID,
+        C.DOB,
+        L.INTERESTRATE
+    FROM
+             LOANS L
+        JOIN CUSTOMERS C ON L.CUSTOMERID = C.CUSTOMERID;
+
+    V_AGE NUMBER;
+BEGIN
+    FOR REC IN CUR_CUSTOMER_LOANS LOOP
+      -- Calculate age from DOB
+        V_AGE := FLOOR(MONTHS_BETWEEN(SYSDATE, REC.DOB) / 12);
+        IF V_AGE > 60 THEN
+         -- Apply 1% discount to the interest rate
+            UPDATE LOANS
+            SET
+                INTERESTRATE = INTERESTRATE - 1
+            WHERE
+                LOANID = REC.LOANID;
+
+            DBMS_OUTPUT.PUT_LINE('✅ Discount applied to LoanID '
+                                 || REC.LOANID
+                                 || ' (Customer Age: '
+                                 || V_AGE
+                                 || ')');
+
+        ELSE
+            DBMS_OUTPUT.PUT_LINE('ℹ️ No discount for LoanID '
+                                 || REC.LOANID
+                                 || ' (Customer Age: '
+                                 || V_AGE
+                                 || ')');
+        END IF;
+
+    END LOOP;
+
+    COMMIT;
+END;
+/
+
+
+
+Output :
+
+
+
+✅ Discount applied to LoanID 101 (Customer Age: 75)
+ℹ️ No discount for LoanID 102 (Customer Age: 30)
+✅ Discount applied to LoanID 103 (Customer Age: 65)
+ℹ️ No discount for LoanID 104 (Customer Age: 44)

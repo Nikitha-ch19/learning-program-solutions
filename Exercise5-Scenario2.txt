@@ -1,0 +1,57 @@
+
+
+CREATE TABLE Transactions (
+    TransactionID NUMBER PRIMARY KEY,
+    AccountID NUMBER,
+    TransactionDate DATE,
+    Amount NUMBER,
+    TransactionType VARCHAR2(10)
+);
+
+CREATE TABLE AuditLog (
+    AuditID NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    TransactionID NUMBER,
+    AccountID NUMBER,
+    Action VARCHAR2(20),
+    LogDate DATE
+);
+
+CREATE OR REPLACE TRIGGER LogTransaction
+AFTER INSERT ON Transactions
+FOR EACH ROW
+BEGIN
+    INSERT INTO AuditLog (TransactionID, AccountID, Action, LogDate)
+    VALUES (:NEW.TransactionID, :NEW.AccountID, 'INSERT', SYSDATE);
+END;
+/
+
+INSERT INTO Transactions VALUES (1001, 1, SYSDATE, 500, 'DEPOSIT');
+INSERT INTO Transactions VALUES (1002, 2, SYSDATE, 200, 'WITHDRAW');
+INSERT INTO Transactions VALUES (1003, 1, SYSDATE, 1000, 'DEPOSIT');
+INSERT INTO Transactions VALUES (1004, 3, SYSDATE, 300, 'WITHDRAW');
+INSERT INTO Transactions VALUES (1005, 4, SYSDATE, 2500, 'DEPOSIT');
+INSERT INTO Transactions VALUES (1006, 2, SYSDATE, 700, 'WITHDRAW');
+INSERT INTO Transactions VALUES (1007, 5, SYSDATE, 1500, 'DEPOSIT');
+INSERT INTO Transactions VALUES (1008, 3, SYSDATE, 900, 'WITHDRAW');
+INSERT INTO Transactions VALUES (1009, 1, SYSDATE, 400, 'DEPOSIT');
+INSERT INTO Transactions VALUES (1010, 2, SYSDATE, 100, 'WITHDRAW');
+COMMIT;
+
+SELECT * FROM Transactions;
+SELECT * FROM AuditLog;
+
+
+Output:
+
+AUDITID TRANSACTIONID ACCOUNTID ACTION   LOGDATE                   
+------- ------------- --------- -------- ------------------------- 
+1       1001          1         INSERT   06/28/2025, 04:59:28 PM   
+2       1002          2         INSERT   06/28/2025, 04:59:28 PM   
+3       1003          1         INSERT   06/28/2025, 04:59:28 PM   
+4       1004          3         INSERT   06/28/2025, 04:59:28 PM   
+5       1005          4         INSERT   06/28/2025, 04:59:28 PM   
+6       1006          2         INSERT   06/28/2025, 04:59:28 PM   
+7       1007          5         INSERT   06/28/2025, 04:59:28 PM   
+8       1008          3         INSERT   06/28/2025, 04:59:28 PM   
+9       1009          1         INSERT   06/28/2025, 04:59:28 PM   
+10      1010          2         INSERT   06/28/2025, 04:59:28 PM  

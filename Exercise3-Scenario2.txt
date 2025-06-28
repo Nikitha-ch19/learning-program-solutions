@@ -1,0 +1,43 @@
+
+
+CREATE TABLE Employees (
+    EmployeeID NUMBER PRIMARY KEY,
+    Name VARCHAR2(100),
+    Position VARCHAR2(50),
+    Salary NUMBER,
+    Department VARCHAR2(50),
+    HireDate DATE
+);
+
+INSERT INTO Employees VALUES (201, 'Amit Sharma', 'Manager', 70000, 'HR', TO_DATE('2014-01-01', 'YYYY-MM-DD'));
+INSERT INTO Employees VALUES (202, 'Neha Reddy', 'Developer', 55000, 'IT', TO_DATE('2017-03-15', 'YYYY-MM-DD'));
+INSERT INTO Employees VALUES (203, 'Ravi Kumar', 'Analyst', 48000, 'Finance', TO_DATE('2016-06-10', 'YYYY-MM-DD'));
+INSERT INTO Employees VALUES (204, 'Divya Singh', 'Developer', 53000, 'IT', TO_DATE('2019-09-25', 'YYYY-MM-DD'));
+INSERT INTO Employees VALUES (205, 'Anjali Mehra', 'Clerk', 40000, 'HR', TO_DATE('2015-12-01', 'YYYY-MM-DD'));
+COMMIT;
+
+CREATE OR REPLACE PROCEDURE UpdateEmployeeBonus (
+    p_dept IN VARCHAR2,
+    p_bonus_pct IN NUMBER
+) IS
+BEGIN
+    UPDATE Employees
+    SET Salary = Salary + (Salary * p_bonus_pct / 100)
+    WHERE Department = p_dept;
+
+    COMMIT;
+
+    DBMS_OUTPUT.PUT_LINE('Bonus applied to department: ' || p_dept);
+END;
+/
+
+BEGIN
+   UpdateEmployeeBonus('IT', 10);
+END;
+/
+
+
+Output:
+
+Bonus applied to department: IT
+

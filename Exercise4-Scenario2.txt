@@ -1,0 +1,59 @@
+
+
+
+CREATE TABLE Loans (
+    LoanID NUMBER PRIMARY KEY,
+    CustomerID NUMBER,
+    LoanAmount NUMBER,
+    InterestRate NUMBER,
+    StartDate DATE,
+    EndDate DATE
+);
+
+INSERT INTO Loans VALUES (101, 1, 50000, 7.5, SYSDATE, ADD_MONTHS(SYSDATE, 60));
+INSERT INTO Loans VALUES (102, 2, 60000, 8.0, SYSDATE, ADD_MONTHS(SYSDATE, 36));
+INSERT INTO Loans VALUES (103, 3, 75000, 9.0, SYSDATE, ADD_MONTHS(SYSDATE, 48));
+INSERT INTO Loans VALUES (104, 4, 85000, 6.5, SYSDATE, ADD_MONTHS(SYSDATE, 24));
+INSERT INTO Loans VALUES (105, 5, 100000, 10.0, SYSDATE, ADD_MONTHS(SYSDATE, 60));
+INSERT INTO Loans VALUES (106, 6, 40000, 5.5, SYSDATE, ADD_MONTHS(SYSDATE, 12));
+INSERT INTO Loans VALUES (107, 7, 92000, 7.2, SYSDATE, ADD_MONTHS(SYSDATE, 36));
+INSERT INTO Loans VALUES (108, 8, 30000, 6.0, SYSDATE, ADD_MONTHS(SYSDATE, 18));
+INSERT INTO Loans VALUES (109, 9, 65000, 8.5, SYSDATE, ADD_MONTHS(SYSDATE, 30));
+INSERT INTO Loans VALUES (110, 10, 57000, 6.8, SYSDATE, ADD_MONTHS(SYSDATE, 48));
+
+COMMIT;
+
+CREATE OR REPLACE FUNCTION CalculateMonthlyInstallment (
+    p_amount NUMBER,
+    p_annual_rate NUMBER,
+    p_years NUMBER
+) RETURN NUMBER IS
+    v_monthly_rate NUMBER := p_annual_rate / 12 / 100;
+    v_months NUMBER := p_years * 12;
+    v_installment NUMBER;
+BEGIN
+    v_installment := (p_amount * v_monthly_rate) / (1 - POWER(1 + v_monthly_rate, -v_months));
+    RETURN ROUND(v_installment, 2);
+END;
+/
+
+SELECT LoanID, LoanAmount, InterestRate,
+       CalculateMonthlyInstallment(LoanAmount, InterestRate, (MONTHS_BETWEEN(EndDate, StartDate)/12)) AS Monthly_Installment
+FROM Loans
+ORDER BY LoanID;
+
+
+Output:
+
+LOANID LOANAMOUNT INTERESTRATE MONTHLY_INSTALLMENT 
+------ ---------- ------------ ------------------- 
+101    50000      7.5          1001.9              
+102    60000      8            1880.18             
+103    75000      9            1866.38             
+104    85000      6.5          3786.43             
+105    100000     10           2124.7              
+106    40000      5.5          3433.47             
+107    92000      7.2          2849.11             
+108    30000      6            1746.95             
+109    65000      8.5          2412.66             
+110    57000      6.8          1359.65   
