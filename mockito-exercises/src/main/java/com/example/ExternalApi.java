@@ -1,5 +1,6 @@
 package com.example;
 
 public interface ExternalApi {
-    String getData(String userId);  // <- now requires a userId
+    String getData(String userId);
+    void sendNotification(String message);  // <-- New void method
 }

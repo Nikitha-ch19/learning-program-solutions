@@ -9,6 +9,10 @@ public class MyService {
     }
 
     public String fetchDataForUser(String userId) {
-        return api.getData(userId);  // <- uses the userId
+        return api.getData(userId);
+    }
+
+    public void notifyUser(String message) {
+        api.sendNotification(message);  // <-- This is the void method we will verify
     }
 }
