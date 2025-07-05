@@ -12,12 +12,18 @@ public class MyService {
         return api.getData(userId);
     }
 
-    public void notifyUser(String message) {
-        api.sendNotification(message);  // <-- This is the void method we will verify
-    }
     public void performUserAction(String userId) {
     api.sendNotification("Action started for " + userId);
     api.logAction("Fetched data for " + userId);
 }
+
+    public void notifyUser(String userId) {
+    try {
+        api.sendNotification("Hello " + userId);
+    } catch (RuntimeException e) {
+        System.out.println("Notification failed: " + e.getMessage());
+    }
+}
+
 
 }

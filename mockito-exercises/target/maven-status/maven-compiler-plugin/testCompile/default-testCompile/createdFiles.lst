@@ -1,6 +1,7 @@
 com/example/MyServiceMultipleReturnsTest.class
+com/example/MyServiceVoidMethodTest.class
+com/example/MyServiceExceptionTest.class
 com/example/MyServiceInteractionTest.class
 com/example/MyServiceArgumentTest.class
-com/example/MyServiceVoidMethodTest.class
 com/example/MyServiceTest.class
 com/example/MyServiceInteractionOrderTest.class
