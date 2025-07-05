@@ -4,25 +4,16 @@ import org.junit.jupiter.api.Test;
 import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
 
-class MyServiceTest {
+public class MyServiceTest {
 
     @Test
-    void testExternalApi() {
-        // 1. Mock the dependency
+    public void testExternalApi() {
         ExternalApi mockApi = mock(ExternalApi.class);
+        when(mockApi.getData("user123")).thenReturn("Mock Data");
 
-        // 2. Stub its behaviour
-        when(mockApi.getData()).thenReturn("Mock Data");
-
-        // 3. Inject mock into service
         MyService service = new MyService(mockApi);
+        String result = service.fetchDataForUser("user123");
 
-        // 4. Call method under test
-        String result = service.fetchData();
-
-        // 5. Verify outcome
         assertEquals("Mock Data", result);
-        // (Optional) verify the interaction happened once
-        verify(mockApi).getData();
     }
 }

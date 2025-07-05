@@ -1,15 +1,14 @@
 package com.example;
 
-/** Service that depends on the ExternalApi. */
 public class MyService {
 
     private final ExternalApi api;
 
     public MyService(ExternalApi api) {
-        this.api = api;          // inject the dependency
+        this.api = api;
     }
 
-    public String fetchData() {
-        return api.getData();    // delegate to the API
+    public String fetchDataForUser(String userId) {
+        return api.getData(userId);  // <- uses the userId
     }
 }
