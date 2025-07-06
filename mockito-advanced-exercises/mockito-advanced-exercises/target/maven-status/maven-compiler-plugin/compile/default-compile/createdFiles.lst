@@ -1,3 +1,5 @@
 com/example/RestClient.class
 com/example/App.class
+com/example/FileWriter.class
+com/example/FileReader.class
 com/example/ApiService.class
