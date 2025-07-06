@@ -9,3 +9,6 @@ public class UserService {
     public User getUserById(Long id) { return repo.findById(id).orElse(null); }
     public User saveUser(User u) { return repo.save(u); }
 }
+public User requireUser(Long id) {
+    return repo.findById(id).orElseThrow();
+}
