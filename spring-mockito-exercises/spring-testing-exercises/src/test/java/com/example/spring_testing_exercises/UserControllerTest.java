@@ -17,12 +17,16 @@ class UserControllerTest {
     @MockBean private UserService userService;
 
     @Test
-    void getUser_returnsJson() throws Exception {
-        User alice = new User(); alice.setId(1L); alice.setName("Alice");
-        Mockito.when(userService.getUserById(1L)).thenReturn(alice);
+void createUser_returnsCreatedUser() throws Exception {
+    User joe = new User(); joe.setId(5L); joe.setName("Joe");
+    Mockito.when(userService.saveUser(Mockito.any())).thenReturn(joe);
 
-        mockMvc.perform(get("/users/1"))
-               .andExpect(status().isOk())
-               .andExpect(jsonPath("$.name").value("Alice"));
-    }
+    mockMvc.perform(post("/users")
+            .contentType("application/json")
+            .content("""{"id":5,"name":"Ignored"}"""))
+           .andExpect(status().isOk())
+           .andExpect(jsonPath("$.id").value(5))
+           .andExpect(jsonPath("$.name").value("Joe"));
+}
+
 }
