@@ -28,5 +28,13 @@ void createUser_returnsCreatedUser() throws Exception {
            .andExpect(jsonPath("$.id").value(5))
            .andExpect(jsonPath("$.name").value("Joe"));
 }
+@Test
+void getUser_notFound_returns404() throws Exception {
+    Mockito.when(userService.getUserById(42L)).thenThrow(new java.util.NoSuchElementException());
+
+    mockMvc.perform(get("/users/42"))
+           .andExpect(status().isNotFound())
+           .andExpect(content().string("User not found"));
+}
 
 }
