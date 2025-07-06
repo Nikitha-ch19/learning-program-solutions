@@ -1,0 +1,28 @@
+package com.example.springtestingexercises;
+
+import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.junit.jupiter.api.extension.ExtendWith;
+
+import java.util.Optional;
+
+import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+@ExtendWith(MockitoExtension.class)
+class UserServiceTest {
+
+    @Mock  UserRepository repo;
+    @InjectMocks  UserService service;
+
+    @Test
+    void getUserById_returnsUserFromMock() {
+        User bob = new User(); bob.setId(2L); bob.setName("Bob");
+        when(repo.findById(2L)).thenReturn(Optional.of(bob));
+
+        User result = service.getUserById(2L);
+        assertEquals("Bob", result.getName());
+    }
+}
